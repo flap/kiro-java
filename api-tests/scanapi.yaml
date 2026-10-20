@@ -1,0 +1,96 @@
+# ScanAPI — Testes de Integração de API + Documentação viva
+# Docs: https://scanapi.dev
+#
+# Como rodar (a aplicação precisa estar no ar):
+#   1) ./mvnw spring-boot:run           # em outro terminal (porta 8080)
+#   2) scanapi run api-tests/scanapi.yaml
+#      -> gera api-tests/scanapi-report.html
+#
+# A URL base vem da variável de ambiente BASE_URL (default http://localhost:8080).
+# Em CI, defina BASE_URL apontando para a instância sob teste.
+#
+# NOTA: query params vão na chave `params`, NUNCA inline no `path`
+# (o ScanAPI não envia querystring embutida no path).
+
+endpoints:
+  - name: hello-world-api
+    path: ${BASE_URL}
+    requests:
+      # ---------------------------------------------------------------
+      # Health check (Actuator)
+      # ---------------------------------------------------------------
+      - name: health_is_up
+        path: /actuator/health
+        method: get
+        tests:
+          - name: status_code_is_200
+            assert: ${{ response.status_code == 200 }}
+          - name: status_is_up
+            assert: ${{ response.json()["status"] == "UP" }}
+
+      # ---------------------------------------------------------------
+      # Saudação com nome informado
+      # ---------------------------------------------------------------
+      - name: hello_with_name
+        path: /api/hello
+        method: get
+        params:
+          name: Ada
+        tests:
+          - name: status_code_is_200
+            assert: ${{ response.status_code == 200 }}
+          - name: content_type_is_json
+            assert: ${{ "application/json" in response.headers["Content-Type"] }}
+          - name: message_is_correct
+            assert: ${{ response.json()["message"] == "Hello, Ada!" }}
+          - name: recipient_echoes_name
+            assert: ${{ response.json()["recipient"] == "Ada" }}
+          - name: timestamp_is_present
+            assert: ${{ response.json()["timestamp"] != None }}
+
+      # ---------------------------------------------------------------
+      # Saudação sem nome -> fallback "World"
+      # ---------------------------------------------------------------
+      - name: hello_without_name
+        path: /api/hello
+        method: get
+        tests:
+          - name: status_code_is_200
+            assert: ${{ response.status_code == 200 }}
+          - name: recipient_defaults_to_world
+            assert: ${{ response.json()["recipient"] == "World" }}
+          - name: message_defaults_to_world
+            assert: ${{ response.json()["message"] == "Hello, World!" }}
+
+      # ---------------------------------------------------------------
+      # Saudação com nome com espaços -> deve ser "trimado"
+      # ---------------------------------------------------------------
+      - name: hello_trims_whitespace
+        path: /api/hello
+        method: get
+        params:
+          name: "  Linus  "
+        tests:
+          - name: status_code_is_200
+            assert: ${{ response.status_code == 200 }}
+          - name: recipient_is_trimmed
+            assert: ${{ response.json()["recipient"] == "Linus" }}
+
+      # ---------------------------------------------------------------
+      # Validação: name acima de 100 caracteres -> 400 + formato de erro
+      # (demonstra teste de contrato de erro, não só de caminho feliz)
+      # ---------------------------------------------------------------
+      - name: hello_name_too_long_is_rejected
+        path: /api/hello
+        method: get
+        params:
+          name: "${{ 'x' * 101 }}"
+        tests:
+          - name: status_code_is_400
+            assert: ${{ response.status_code == 400 }}
+          - name: error_body_has_status_400
+            assert: ${{ response.json()["status"] == 400 }}
+          - name: error_body_has_messages
+            assert: ${{ len(response.json()["messages"]) > 0 }}
+          - name: error_does_not_leak_stacktrace
+            assert: ${{ "trace" not in response.json() }}

@@ -1,0 +1,35 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# ScanAPI — relatório gerado (a spec é versionada, o relatório não)
+api-tests/scanapi-report.html
+scanapi-report.html
+
+# Local environment / secrets (NUNCA versionar)
+.env
+.env.local
+application-local.yml
+application-local.properties
+*.pem
+*.key

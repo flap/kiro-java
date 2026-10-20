@@ -1,0 +1,23 @@
+{
+  "_comment": "MCP servers recomendados para este projeto. Copie este conteudo para .kiro/settings/mcp.json (workspace) ou ~/.kiro/settings/mcp.json (usuario). Requer 'uv'/'uvx' instalado: https://docs.astral.sh/uv/getting-started/installation/",
+  "mcpServers": {
+    "maven": {
+      "command": "uvx",
+      "args": ["maven-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "aws-docs": {
+      "command": "uvx",
+      "args": ["awslabs.aws-documentation-mcp-server@latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

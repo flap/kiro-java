@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: hello-world
+
+  # Java 21 virtual threads (JEP 444): move requests Tomcat, @Async e @Scheduled
+  # para virtual threads. Ideal para cargas I/O-bound. Em Java 21, evite blocos
+  # 'synchronized' ao redor de I/O (pinning); use ReentrantLock/Semaphore.
+  threads:
+    virtual:
+      enabled: true
+
+  # Banco padrao: H2 em memoria, para rodar sem infra externa.
+  datasource:
+    url: jdbc:h2:mem:hellodb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      # Flyway e a fonte da verdade do schema. NUNCA use ddl-auto=update em prod.
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Flyway aplica as migracoes versionadas no startup.
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  h2:
+    console:
+      enabled: false
+
+# Expoe apenas os endpoints de gestao necessarios (principio do menor privilegio).
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+server:
+  # Nao exponha a versao/servidor em headers de erro.
+  error:
+    include-stacktrace: never
+    include-message: never
+  shutdown: graceful
+
+logging:
+  level:
+    root: INFO
+    dev.kiro.community: INFO
